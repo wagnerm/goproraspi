@@ -1,0 +1,7 @@
+gopro:
+  image: goproraspi:latest
+  environment:
+   - GOPROPW=mypassword
+   - INTV=10
+   - TTIME=5
+  restart: always
