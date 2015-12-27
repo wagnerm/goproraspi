@@ -18,6 +18,11 @@ import datetime
 
 
 def wait_for_camera(camera, maxwait=600):
+    '''
+    Wait for camera to respond
+    If the camera is in 'sleeping' state, power on
+    If camera is in 'on' state, return
+    '''
     interval = 5
     wait_delta = datetime.timedelta(seconds=maxwait)
     interval_delta = datetime.timedelta(seconds=5)
@@ -34,13 +39,13 @@ def wait_for_camera(camera, maxwait=600):
         if current + interval_delta >= start + wait_delta:
             break
         cur_secs = maxwait - ((start + wait_delta) - (current + interval_delta)).seconds
-        logging.info("Waiting on camera for {} of {}".format(cur_secs, maxwait))
+        logging.info("Waiting on camera for {} of {} seconds".format(cur_secs, maxwait))
         time.sleep(interval)
     raise Exception("Cannot get to camera")
 
 
 def take_picture(camera):
-    wait_for_camera(camera)
+    '''Put camera in still mode if needed, record on to take picture'''
     status = camera.status()
     if status.get('mode') and status.get('mode') not in 'still':
         camera.command('mode', 'still')
@@ -48,17 +53,23 @@ def take_picture(camera):
 
 
 def process(args, camera):
-    wait_delta = datetime.timedelta(seconds=float(args.time))
-    interval_delta = datetime.timedelta(seconds=float(args.interval))
+    wait_for_camera(camera)
+    wait_delta = datetime.timedelta(minutes=args.time)
+    interval_delta = datetime.timedelta(seconds=args.interval)
     start = datetime.datetime.now()
     while True:
         take_picture(camera)
         current = datetime.datetime.now()
         if current + interval_delta >= start + wait_delta:
             break
-        cur_secs = int(args.time) - ((start + wait_delta) - (current + interval_delta)).seconds
-        logging.info("Running for {} of {}".format(cur_secs, args.time))
+        cur_secs = args.time * 60 - ((start + wait_delta) - (current + interval_delta)).seconds
+        logging.info("Running for {} of {} seconds".format(cur_secs, args.time * 60))
         time.sleep(float(args.interval))
+
+    # Wait a few seconds for the camera to finish current operation to power sleep
+    time.sleep(10)
+    camera.command('power', 'sleep')
+
     logging.info('Done.')
 
 
@@ -68,8 +79,8 @@ def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--ip', help='IP Address of Go Pro', required=False, default="10.5.5.9")
     parser.add_argument('-p', '--password', help='WiFi password of Go Pro', required=True, default='')
-    parser.add_argument('-i', '--interval', help='Interval on which a picture will be taken (in seconds)', required=False, default=60)
-    parser.add_argument('-t', '--time', help='Duration of the timelapse (in minutes)', required=False, default=60)
+    parser.add_argument('-i', '--interval', help='Interval on which a picture will be taken (in seconds)', required=False, type=int, default=60)
+    parser.add_argument('-t', '--time', help='Duration of the timelapse (in minutes)', required=False, type=int, default=60)
     args = parser.parse_args()
 
     log_format = '%(asctime)s   %(message)s'
