@@ -10,4 +10,4 @@ COPY main.py /main.py
 
 ENV GOPROPW password
 
-CMD ["python", "/main.py", "-p", "$GOPROPW"]
+CMD python /main.py -p $GOPROPW
