@@ -6,4 +6,4 @@ RUN apk update && \
 RUN pip install argparse flake8 nose tox && \
     pip install goprohero
 
-COPY main.py /root
+COPY main.py /root/main.py

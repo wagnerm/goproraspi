@@ -8,7 +8,7 @@ with a go pro using the go pro app api.
 
 import sys
 import os
-import goprohero
+from goprohero import GoProHero
 import argparse
 import logging
 import time
@@ -16,15 +16,19 @@ import datetime
 
 
 def take_picture(camera):
-    logging.info(camera.status())
+    status = camera.status()
+    if status['mode'] not in 'still':
+        camera.command('mode', 'still')
+    camera.command('record', 'on')
 
-def process(args):
+
+def process(args, camera):
     wait_delta = datetime.timedelta(seconds=float(args.time))
     interval_delta = datetime.timedelta(seconds=float(args.interval))
     start = datetime.datetime.now()
     while True:
         # do stuff
-        take_picture(gopro)
+        take_picture(camera)
         current = datetime.datetime.now()
         if current + interval_delta >= start + wait_delta:
             break
@@ -45,8 +49,8 @@ def main(argv=None):
     log_format = '%(asctime)s   %(message)s'
     logging.basicConfig(format=log_format, level=logging.INFO)
 
-    gopro = GoProHero([args.ip, args.password])
-    process(args, gopro)
+    camera = GoProHero(args.ip, args.password)
+    process(args, camera)
 
 if __name__ == "__main__":
     sys.exit(main())
