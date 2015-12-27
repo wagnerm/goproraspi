@@ -26,8 +26,10 @@ def wait_for_camera(camera, maxwait=600):
         status = camera.status()
         if status.get('summary') in 'notfound':
             logging.info("Camera not found")
-        elif status.get('summary') in 'found':
+        elif status.get('summary') in 'on':
             return
+        elif status.get('summary') in 'sleeping':
+            camera.command('power', 'on')
         current = datetime.datetime.now()
         if current + interval_delta >= start + wait_delta:
             break
@@ -54,9 +56,10 @@ def process(args, camera):
         current = datetime.datetime.now()
         if current + interval_delta >= start + wait_delta:
             break
-        cur_secs = maxwait - ((start + wait_delta) - (current + interval_delta)).seconds
-        logging.info("Running for {} of {}".format(cur_secs, maxwait))
+        cur_secs = int(args.time) - ((start + wait_delta) - (current + interval_delta)).seconds
+        logging.info("Running for {} of {}".format(cur_secs, args.time))
         time.sleep(float(args.interval))
+    logging.info('Done.')
 
 
 def main(argv=None):
