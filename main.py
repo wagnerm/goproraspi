@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 '''
 
 @author: Max Wagner
@@ -15,9 +17,30 @@ import time
 import datetime
 
 
+def wait_for_camera(camera, maxwait=600):
+    interval = 5
+    wait_delta = datetime.timedelta(seconds=maxwait)
+    interval_delta = datetime.timedelta(seconds=5)
+    start = datetime.datetime.now()
+    while True:
+        status = camera.status()
+        if status.get('summary') in 'notfound':
+            logging.info("Camera not found")
+        elif status.get('summary') in 'found':
+            return
+        current = datetime.datetime.now()
+        if current + interval_delta >= start + wait_delta:
+            break
+        cur_secs = maxwait - ((start + wait_delta) - (current + interval_delta)).seconds
+        logging.info("Waiting on camera for {} of {}".format(cur_secs, maxwait))
+        time.sleep(interval)
+    raise Exception("Cannot get to camera")
+
+
 def take_picture(camera):
+    wait_for_camera(camera)
     status = camera.status()
-    if status['mode'] not in 'still':
+    if status.get('mode') and status.get('mode') not in 'still':
         camera.command('mode', 'still')
     camera.command('record', 'on')
 
@@ -27,12 +50,12 @@ def process(args, camera):
     interval_delta = datetime.timedelta(seconds=float(args.interval))
     start = datetime.datetime.now()
     while True:
-        # do stuff
         take_picture(camera)
         current = datetime.datetime.now()
         if current + interval_delta >= start + wait_delta:
             break
-        logging.info("Running {} for {}".format(current + interval_delta, start + wait_delta))
+        cur_secs = maxwait - ((start + wait_delta) - (current + interval_delta)).seconds
+        logging.info("Running for {} of {}".format(cur_secs, maxwait))
         time.sleep(float(args.interval))
 
 
