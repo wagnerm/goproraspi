@@ -1,0 +1,13 @@
+[Unit]
+Description=Start Docker Container
+
+[Service]
+Type=idle
+ExecStart=/usr/local/bin/docker-compose -f /opt/goproraspi/docker-compose.yml up -d
+ExecStop=/usr/local/bin/docker-compose -f /opt/goproraspi/docker-compose.yml stop
+RemainAfterExit=yes
+
+[Install]
+After=docker.service
+Requires=docker.service
+WantedBy=multi-user.target
