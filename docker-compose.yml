@@ -4,3 +4,4 @@ gopro:
    - GOPROPW=password
    - INTV=10
    - TTIME=5
+   - BEGIN=""

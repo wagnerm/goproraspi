@@ -11,5 +11,6 @@ COPY main.py /main.py
 ENV GOPROPW password
 ENV INTV 60
 ENV TTIME 60
+ENV BEGIN ""
 
-CMD python /main.py -p $GOPROPW -i $INTV -t $TTIME
+CMD python /main.py -p $GOPROPW -i $INTV -t $TTIME -b=$BEGIN
