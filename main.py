@@ -15,6 +15,17 @@ import argparse
 import logging
 import time
 import datetime
+import dateutil.parser
+
+
+def wait(begin_time):
+   begin = dateutil.parser.parse(begin_time)
+   while True:
+       now = datetime.datetime.now()
+       logging.info("Begin at: {}, now: {}".format(begin, now))
+       if now >= begin:
+           return
+       time.sleep(10)
 
 
 def wait_for_camera(camera, maxwait=600):
@@ -53,6 +64,9 @@ def take_picture(camera):
 
 
 def process(args, camera):
+    if args.begin:
+        logging.info("Will wait until {} to start.".format(args.begin))
+        wait(args.begin)
     wait_for_camera(camera)
     wait_delta = datetime.timedelta(minutes=args.time)
     interval_delta = datetime.timedelta(seconds=args.interval)
@@ -81,6 +95,7 @@ def main(argv=None):
     parser.add_argument('-p', '--password', help='WiFi password of Go Pro', required=True, default='')
     parser.add_argument('-i', '--interval', help='Interval on which a picture will be taken (in seconds)', required=False, type=int, default=60)
     parser.add_argument('-t', '--time', help='Duration of the timelapse (in minutes)', required=False, type=int, default=60)
+    parser.add_argument('-b', '--begin', help='Begin time of timelapse, UTC, ISO8601 format', required=False, default=None)
     args = parser.parse_args()
 
     log_format = '%(asctime)s   %(message)s'

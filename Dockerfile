@@ -3,7 +3,7 @@ FROM container4armhf/armhf-alpine
 RUN apk update && \
     apk add python py-pip py-pillow
 
-RUN pip install argparse flake8 nose tox && \
+RUN pip install argparse flake8 nose tox dateutils && \
     pip install goprohero
 
 COPY main.py /main.py
